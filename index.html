@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#111111">
+  <title>Magazine Reader</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="site-header">
+    <div>
+      <div class="eyebrow">LIBRARY</div>
+      <h1>Magazines</h1>
+    </div>
+    <button id="refreshButton" class="folder-button" type="button">Refresh library</button>
+  </header>
+
+  <main id="libraryView" class="library">
+    <section class="hero">
+      <div>
+        <p class="hero-kicker">DIGITAL ARCHIVE</p>
+        <h2>Pick a magazine.</h2>
+        <p class="hero-copy">The site automatically scans the <code>Magazines</code> folder when it loads.</p>
+      </div>
+      <div class="hero-tip">
+        <strong>Folder format</strong>
+        <span>Magazines/01/1.jpg · 01/2.jpg · 01/3.jpg</span>
+      </div>
+    </section>
+    <section id="magazineGrid" class="magazine-grid" aria-live="polite"></section>
+  </main>
+
+  <section id="readerView" class="reader is-hidden" aria-hidden="true">
+    <div class="reader-topbar">
+      <button id="backButton" class="icon-button" aria-label="Back to library">←</button>
+      <div class="reader-title-wrap">
+        <span id="readerTitle" class="reader-title">Magazine</span>
+        <span id="readerProgress" class="reader-progress">Cover</span>
+      </div>
+      <button id="fullscreenButton" class="icon-button" aria-label="Toggle fullscreen">⛶</button>
+    </div>
+
+    <div id="readerStage" class="reader-stage" tabindex="0">
+      <button id="prevButton" class="nav-zone nav-prev" aria-label="Previous page"></button>
+      <div id="spread" class="spread"></div>
+      <button id="nextButton" class="nav-zone nav-next" aria-label="Next page"></button>
+      <div id="loading" class="loading is-hidden">Loading…</div>
+    </div>
+
+    <div class="reader-bottom">
+      <div class="reader-controls">
+        <button id="prevControl" class="control-button">Previous</button>
+        <button id="nextControl" class="control-button control-primary">Next</button>
+      </div>
+      <div id="thumbnailStrip" class="thumbnail-strip" aria-label="Pages"></div>
+    </div>
+  </section>
+
+  <dialog id="errorDialog" class="error-dialog">
+    <h2>Couldn't load the library</h2>
+    <p id="errorText"></p>
+    <button id="errorClose" class="control-button control-primary">OK</button>
+  </dialog>
+
+  <script src="app.js"></script>
+</body>
+</html>
