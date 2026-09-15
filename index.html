@@ -1,68 +1,383 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#111111">
-  <title>Magazine Reader</title>
-  <link rel="stylesheet" href="styles.css">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0b0c">
+<title>Magazine Library</title>
+<style>
+:root{
+  --bg:#0b0b0c;--panel:#151516;--text:#f5f3ee;--muted:#9d9a94;
+  --line:rgba(255,255,255,.1);--shadow:0 22px 70px rgba(0,0,0,.5)
+}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);
+  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit}
+header{
+  position:sticky;top:0;z-index:20;display:flex;align-items:center;justify-content:space-between;
+  gap:18px;padding:16px clamp(16px,4vw,48px);background:rgba(11,11,12,.88);
+  border-bottom:1px solid var(--line);backdrop-filter:blur(14px)
+}
+.eyebrow{margin:0 0 5px;color:var(--muted);font-size:10px;font-weight:800;letter-spacing:.18em}
+h1{margin:0;font-size:clamp(22px,3vw,32px);letter-spacing:-.04em}
+.status{color:var(--muted);font-size:12px}
+main{width:min(1400px,100%);margin:auto;padding:40px clamp(16px,4vw,48px) 70px}
+.hero{display:grid;grid-template-columns:1fr auto;gap:30px;align-items:end;margin-bottom:42px}
+.hero h2{margin:0;font-size:clamp(42px,7vw,88px);line-height:.92;letter-spacing:-.06em}
+.hero p{max-width:700px;color:var(--muted);line-height:1.55}
+.tip{border:1px solid var(--line);background:var(--panel);border-radius:14px;padding:16px}
+.tip strong{display:block;font-size:12px}.tip span{display:block;margin-top:7px;color:var(--muted);font-size:12px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:32px 22px}
+.card{border:0;padding:0;background:none;color:inherit;text-align:left;cursor:pointer}
+.cover{aspect-ratio:2/3;background:#1a1a1c;border-radius:8px;overflow:hidden;box-shadow:var(--shadow);transition:.22s ease}
+.card:hover .cover{transform:translateY(-5px)}
+.cover img{width:100%;height:100%;object-fit:cover;display:block}
+.meta{padding-top:11px}.name{font-weight:750;font-size:15px}
+.count{margin-top:4px;color:var(--muted);font-size:12px}
+.empty{grid-column:1/-1;border:1px dashed var(--line);border-radius:14px;padding:60px 20px;text-align:center;color:var(--muted)}
+.reader{position:fixed;inset:0;z-index:100;background:#050506;display:grid;grid-template-rows:auto 1fr auto}
+.hidden{display:none}
+.topbar{display:grid;grid-template-columns:44px 1fr 44px;align-items:center;gap:10px;padding:10px 12px;border-bottom:1px solid var(--line);background:rgba(5,5,6,.92);backdrop-filter:blur(14px)}
+.icon{width:40px;height:40px;border:1px solid var(--line);border-radius:10px;background:var(--panel);color:var(--text);cursor:pointer;font-size:20px}
+.title{text-align:center;min-width:0}.title b{display:block;font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.title span{display:block;margin-top:2px;color:var(--muted);font-size:11px}
+.stage{position:relative;min-height:0;display:grid;place-items:center;padding:12px clamp(8px,5vw,70px);overflow:hidden;outline:none}
+.spread{width:min(1500px,100%);height:min(84vh,100%);display:flex;align-items:center;justify-content:center;gap:10px;touch-action:pan-y;user-select:none}
+.page{max-width:50%;max-height:100%;width:auto;height:auto;object-fit:contain;box-shadow:0 18px 70px rgba(0,0,0,.55);background:#111}
+.spread.single .page{max-width:min(62vw,540px)}
+.zone{position:absolute;top:0;bottom:0;width:28%;border:0;background:transparent;cursor:pointer;z-index:2}
+.prev{left:0}.next{right:0}
+.bottom{border-top:1px solid var(--line);background:rgba(5,5,6,.95);padding:9px 10px calc(9px + env(safe-area-inset-bottom))}
+.controls{display:flex;justify-content:center;gap:8px;margin-bottom:9px}
+.control{border:1px solid var(--line);background:var(--panel);color:var(--text);border-radius:9px;padding:8px 12px;cursor:pointer;font-weight:700;font-size:12px}
+.primary{background:#fff;color:#111}
+.thumbs{display:flex;justify-content:center;gap:6px;overflow-x:auto}
+.thumb{flex:0 0 auto;width:42px;height:62px;padding:0;border-radius:5px;border:2px solid transparent;background:#19191b;opacity:.55;overflow:hidden;cursor:pointer}
+.thumb.active{border-color:#fff;opacity:1}.thumb img{width:100%;height:100%;object-fit:cover}
+.error{color:var(--text);background:var(--panel);border:1px solid var(--line);border-radius:14px;max-width:420px}
+.error::backdrop{background:rgba(0,0,0,.72)}
+.error p{color:var(--muted);line-height:1.5}
+code{background:rgba(255,255,255,.06);border:1px solid var(--line);border-radius:5px;padding:2px 5px;color:var(--text)}
+@media(max-width:800px){
+  header{position:static}.status{display:none}
+  .hero{grid-template-columns:1fr;margin-bottom:28px}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:25px 14px}
+  main{padding-top:28px}.stage{padding:7px}
+  .spread{gap:4px}.spread.dual .page{max-width:calc(50% - 2px)}
+  .spread.single .page{max-width:88vw}.zone{width:24%}
+}
+</style>
 </head>
 <body>
-  <header class="site-header">
+
+<header>
+  <div>
+    <div class="eyebrow">DIGITAL ARCHIVE</div>
+    <h1>Magazines</h1>
+  </div>
+  <div id="status" class="status">Scanning library…</div>
+</header>
+
+<main id="library">
+  <section class="hero">
     <div>
-      <div class="eyebrow">LIBRARY</div>
-      <h1>Magazines</h1>
+      <div class="eyebrow">COLLECTION</div>
+      <h2>Pick a magazine.</h2>
+      <p>
+        This page automatically finds issue folders inside <code>Magazines/</code>
+        on your GitHub repository. Put JPGs inside each issue folder and refresh.
+      </p>
     </div>
-    <button id="refreshButton" class="folder-button" type="button">Refresh library</button>
-  </header>
-
-  <main id="libraryView" class="library">
-    <section class="hero">
-      <div>
-        <p class="hero-kicker">DIGITAL ARCHIVE</p>
-        <h2>Pick a magazine.</h2>
-        <p class="hero-copy">The site automatically scans the <code>Magazines</code> folder when it loads.</p>
-      </div>
-      <div class="hero-tip">
-        <strong>Folder format</strong>
-        <span>Magazines/01/1.jpg · 01/2.jpg · 01/3.jpg</span>
-      </div>
-    </section>
-    <section id="magazineGrid" class="magazine-grid" aria-live="polite"></section>
-  </main>
-
-  <section id="readerView" class="reader is-hidden" aria-hidden="true">
-    <div class="reader-topbar">
-      <button id="backButton" class="icon-button" aria-label="Back to library">←</button>
-      <div class="reader-title-wrap">
-        <span id="readerTitle" class="reader-title">Magazine</span>
-        <span id="readerProgress" class="reader-progress">Cover</span>
-      </div>
-      <button id="fullscreenButton" class="icon-button" aria-label="Toggle fullscreen">⛶</button>
-    </div>
-
-    <div id="readerStage" class="reader-stage" tabindex="0">
-      <button id="prevButton" class="nav-zone nav-prev" aria-label="Previous page"></button>
-      <div id="spread" class="spread"></div>
-      <button id="nextButton" class="nav-zone nav-next" aria-label="Next page"></button>
-      <div id="loading" class="loading is-hidden">Loading…</div>
-    </div>
-
-    <div class="reader-bottom">
-      <div class="reader-controls">
-        <button id="prevControl" class="control-button">Previous</button>
-        <button id="nextControl" class="control-button control-primary">Next</button>
-      </div>
-      <div id="thumbnailStrip" class="thumbnail-strip" aria-label="Pages"></div>
+    <div class="tip">
+      <strong>Folder format</strong>
+      <span>Magazines/01/1.jpg · 01/2.jpg · 01/3.jpg</span>
     </div>
   </section>
+  <section id="grid" class="grid"></section>
+</main>
 
-  <dialog id="errorDialog" class="error-dialog">
-    <h2>Couldn't load the library</h2>
-    <p id="errorText"></p>
-    <button id="errorClose" class="control-button control-primary">OK</button>
-  </dialog>
+<section id="reader" class="reader hidden" aria-hidden="true">
+  <div class="topbar">
+    <button id="back" class="icon" aria-label="Back">←</button>
+    <div class="title">
+      <b id="readerTitle">Magazine</b>
+      <span id="readerProgress">Cover</span>
+    </div>
+    <button id="full" class="icon" aria-label="Fullscreen">⛶</button>
+  </div>
 
-  <script src="app.js"></script>
+  <div id="stage" class="stage" tabindex="0">
+    <button id="prevZone" class="zone prev" aria-label="Previous spread"></button>
+    <div id="spread" class="spread single"></div>
+    <button id="nextZone" class="zone next" aria-label="Next spread"></button>
+  </div>
+
+  <div class="bottom">
+    <div class="controls">
+      <button id="prev" class="control">Previous</button>
+      <button id="next" class="control primary">Next</button>
+    </div>
+    <div id="thumbs" class="thumbs"></div>
+  </div>
+</section>
+
+<dialog id="error" class="error">
+  <h2>Couldn’t load magazines</h2>
+  <p id="errorText"></p>
+  <button class="control primary" onclick="document.getElementById('error').close()">OK</button>
+</dialog>
+
+<script>
+/*
+  GitHub Pages setup:
+    your-repo/
+      index.html
+      Magazines/
+        01/
+          1.jpg
+          2.jpg
+          3.jpg
+        02/
+          1.jpg
+          ...
+
+  For a github.io URL, the script automatically detects owner/repository.
+  For a custom domain, set REPO manually below, for example:
+    const REPO = "myusername/magazine-site";
+*/
+const REPO = "";
+const BRANCH = "main";
+
+const state = { magazines: [], active: null, spread: 0 };
+
+const $ = id => document.getElementById(id);
+const library = $("library"), grid = $("grid"), status = $("status");
+const reader = $("reader"), spreadEl = $("spread"), thumbs = $("thumbs");
+const readerTitle = $("readerTitle"), readerProgress = $("readerProgress");
+
+function getRepo() {
+  if (REPO) return REPO;
+
+  const host = location.hostname;
+  const path = location.pathname.replace(/^\\/+|\\/+$/g, "").split("/").filter(Boolean);
+
+  if (host.endsWith(".github.io")) {
+    const owner = host.split(".")[0];
+    const repo = path.length ? path[0] : `${owner}.github.io`;
+    return `${owner}/${repo}`;
+  }
+
+  // Helpful fallback for local preview: set REPO above.
+  throw new Error("GitHub repository could not be detected. Set REPO near the top of index.html.");
+}
+
+async function githubJson(url) {
+  const res = await fetch(url, {
+    headers: { "Accept": "application/vnd.github+json" },
+    cache: "no-store"
+  });
+  if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+  return res.json();
+}
+
+async function loadLibrary() {
+  try {
+    const repo = getRepo();
+    status.textContent = "Scanning library…";
+
+    const base = `https://api.github.com/repos/${repo}/contents/Magazines?ref=${encodeURIComponent(BRANCH)}`;
+    const items = await githubJson(base);
+
+    const folders = items
+      .filter(x => x.type === "dir")
+      .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true,sensitivity:"base"}));
+
+    const magazines = [];
+
+    for (const folder of folders) {
+      const files = await githubJson(
+        `https://api.github.com/repos/${repo}/contents/Magazines/${encodeURIComponent(folder.name)}?ref=${encodeURIComponent(BRANCH)}`
+      );
+
+      const pages = files
+        .filter(x => x.type === "file" && /\.(jpe?g|png|webp)$/i.test(x.name))
+        .sort((a,b) => a.name.localeCompare(b.name, undefined, {numeric:true,sensitivity:"base"}));
+
+      if (pages.length) {
+        magazines.push({
+          id: folder.name,
+          title: `Magazine ${folder.name}`,
+          pages: pages.map(p => ({
+            name: p.name,
+            url: p.download_url
+          }))
+        });
+      }
+    }
+
+    state.magazines = magazines;
+    renderLibrary();
+    status.textContent = `${magazines.length} issue${magazines.length === 1 ? "" : "s"}`;
+  } catch (err) {
+    console.error(err);
+    status.textContent = "Couldn’t scan";
+    grid.innerHTML = `<div class="empty">
+      <strong>Couldn’t scan <code>Magazines/</code>.</strong><br><br>
+      Make sure this HTML is hosted inside the GitHub repository that contains
+      the <code>Magazines</code> folder, and that the repository is public.<br><br>
+      If you use a custom domain, set <code>REPO = "username/repository"</code> near the top of this file.
+    </div>`;
+  }
+}
+
+function renderLibrary() {
+  grid.innerHTML = "";
+  if (!state.magazines.length) {
+    grid.innerHTML = `<div class="empty">
+      <strong>No magazines found.</strong><br><br>
+      Add issue folders inside <code>Magazines/</code>, each containing JPGs.
+    </div>`;
+    return;
+  }
+
+  state.magazines.forEach(mag => {
+    const btn = document.createElement("button");
+    btn.className = "card";
+    btn.type = "button";
+
+    btn.innerHTML = `
+      <div class="cover"><img src="${mag.pages[0].url}" alt="${escapeHtml(mag.title)} cover"></div>
+      <div class="meta">
+        <div class="name">${escapeHtml(mag.title)}</div>
+        <div class="count">${mag.pages.length} ${mag.pages.length === 1 ? "page" : "pages"}</div>
+      </div>`;
+    btn.onclick = () => openMagazine(mag);
+    grid.appendChild(btn);
+  });
+}
+
+function escapeHtml(v) {
+  return String(v).replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
+  })[c]);
+}
+
+function openMagazine(mag) {
+  state.active = mag;
+  state.spread = 0;
+  library.classList.add("hidden");
+  reader.classList.remove("hidden");
+  reader.setAttribute("aria-hidden","false");
+  readerTitle.textContent = mag.title;
+  buildThumbs();
+  renderSpread();
+  $("stage").focus();
+}
+
+function closeMagazine() {
+  reader.classList.add("hidden");
+  reader.setAttribute("aria-hidden","true");
+  state.active = null;
+}
+
+function spreadCount() {
+  const n = state.active?.pages.length || 0;
+  return n ? 1 + Math.ceil(Math.max(0,n-1)/2) : 0;
+}
+
+function indicesForSpread(i) {
+  if (i === 0) return [0];
+  const left = 1 + (i-1)*2;
+  const right = left + 1;
+  return right < state.active.pages.length ? [left,right] : [left];
+}
+
+function renderSpread() {
+  const mag = state.active;
+  const total = spreadCount();
+  if (!mag || !total) return;
+
+  state.spread = Math.max(0,Math.min(state.spread,total-1));
+  const ids = indicesForSpread(state.spread);
+
+  spreadEl.className = "spread " + (ids.length === 1 ? "single" : "dual");
+  spreadEl.innerHTML = "";
+
+  ids.forEach(i => {
+    const img = document.createElement("img");
+    img.className = "page";
+    img.alt = `${mag.title}, page ${i+1}`;
+    img.src = mag.pages[i].url;
+    spreadEl.appendChild(img);
+  });
+
+  readerProgress.textContent = state.spread === 0
+    ? `Cover · 1 / ${mag.pages.length}`
+    : `Pages ${ids[0]+1}${ids[1] !== undefined ? "–" + (ids[1]+1) : ""} / ${mag.pages.length}`;
+
+  $("prev").disabled = state.spread === 0;
+  $("next").disabled = state.spread === total-1;
+
+  document.querySelectorAll(".thumb").forEach((x,i) => {
+    x.classList.toggle("active", ids.includes(i));
+  });
+}
+
+function changeSpread(delta) {
+  const next = state.spread + delta;
+  if (next < 0 || next >= spreadCount()) return;
+  state.spread = next;
+  renderSpread();
+}
+
+function buildThumbs() {
+  thumbs.innerHTML = "";
+  state.active.pages.forEach((p,i) => {
+    const b = document.createElement("button");
+    b.className = "thumb";
+    b.title = `Page ${i+1}`;
+    b.innerHTML = `<img src="${p.url}" alt="Page ${i+1}">`;
+    b.onclick = () => {
+      state.spread = i === 0 ? 0 : 1 + Math.floor((i-1)/2);
+      renderSpread();
+    };
+    thumbs.appendChild(b);
+  });
+}
+
+async function fullscreen() {
+  try {
+    if (!document.fullscreenElement) await reader.requestFullscreen();
+    else await document.exitFullscreen();
+  } catch {}
+}
+
+$("back").onclick = closeMagazine;
+$("full").onclick = fullscreen;
+$("prev").onclick = () => changeSpread(-1);
+$("next").onclick = () => changeSpread(1);
+$("prevZone").onclick = () => changeSpread(-1);
+$("nextZone").onclick = () => changeSpread(1);
+
+document.addEventListener("keydown", e => {
+  if (reader.classList.contains("hidden")) return;
+  if (e.key === "Escape") closeMagazine();
+  if (e.key === "ArrowLeft") changeSpread(-1);
+  if (e.key === "ArrowRight") changeSpread(1);
+  if (e.key.toLowerCase() === "f") fullscreen();
+});
+
+let sx=0, sy=0;
+$("stage").addEventListener("touchstart", e => {
+  const t=e.changedTouches[0]; sx=t.clientX; sy=t.clientY;
+},{passive:true});
+$("stage").addEventListener("touchend", e => {
+  const t=e.changedTouches[0], dx=t.clientX-sx, dy=t.clientY-sy;
+  if (Math.abs(dx)>55 && Math.abs(dx)>Math.abs(dy)) changeSpread(dx<0?1:-1);
+},{passive:true});
+
+loadLibrary();
+</script>
 </body>
 </html>
